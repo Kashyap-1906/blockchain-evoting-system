@@ -1,0 +1,16 @@
+CREATE DATABASE evoting;
+
+USE evoting;
+
+CREATE TABLE voters(
+voterId VARCHAR(10) PRIMARY KEY,
+name VARCHAR(50),
+imagePath VARCHAR(100),
+hasVoted BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE candidates(
+id INT PRIMARY KEY AUTO_INCREMENT,
+name VARCHAR(50),
+partySymbol VARCHAR(100)
+);

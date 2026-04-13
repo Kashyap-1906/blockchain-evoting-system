@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Polling Booth</title>
+
+<style>
+
+.hidden{display:none;}
+
+body{
+font-family:"Segoe UI",Arial,sans-serif;
+background:linear-gradient(135deg,#f5f7fa,#c3cfe2);
+margin:0;
+padding:0;
+text-align:center;
+}
+
+header{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+background:#1f3c88;
+color:white;
+padding:15px;
+font-size:22px;
+font-weight:600;
+box-shadow:0 3px 10px rgba(0,0,0,0.2);
+}
+
+.logo{height:40px;}
+
+.section{
+margin:30px auto;
+padding:25px;
+width:80%;
+background:white;
+border-radius:12px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+input{
+padding:10px;
+width:230px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px 20px;
+margin:10px;
+border:none;
+border-radius:6px;
+background:#007bff;
+color:white;
+cursor:pointer;
+}
+
+button:hover{background:#0056b3;}
+
+video,canvas{
+border-radius:10px;
+border:3px solid #007bff;
+margin-top:10px;
+width:320px;
+height:240px;
+object-fit:cover;
+}
+
+.face-container{
+display:flex;
+justify-content:center;
+gap:40px;
+flex-wrap:wrap;
+}
+
+.camera-box{
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.scanning{
+width:40px;
+height:40px;
+border:4px solid #007bff;
+border-top:4px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin:10px auto;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+#candidateContainer{
+width:70%;
+margin:auto;
+margin-top:20px;
+}
+
+.evm-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #ccc;
+padding:12px;
+}
+
+.candidate-left{
+display:flex;
+align-items:center;
+gap:15px;
+font-weight:600;
+}
+
+.candidate-left img{
+width:40px;
+}
+
+.vote-btn{
+background:#1e90ff;
+padding:8px 18px;
+border-radius:6px;
+}
+
+.vote-btn:hover{background:#0f6fd1;}
+
+#successScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-size:26px;
+font-weight:600;
+color:#28a745;
+z-index:999;
+display:none;
+}
+
+#txId{
+font-size:18px;
+color:#333;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="eci-logo.png" class="logo">
+Secure Blockchain Voting System
+</header>
+
+<div id="successScreen">
+✅ Vote Recorded Successfully
+<br><br>
+Transaction ID:
+<div id="txId"></div>
+<br>
+Thank You For Voting
+</div>
+
+<h2>🗳 Polling Booth</h2>
+
+<div class="section" id="officerSection">
+
+<h3>Officer Verification</h3>
+
+<input type="text" id="voterId" placeholder="Enter Voter ID">
+<br>
+<button onclick="verifyVoter()">Verify</button>
+
+<div id="officerMessage"></div>
+
+</div>
+
+<div class="section hidden" id="boothSection">
+
+<h3>Face Authentication</h3>
+
+<div class="face-container">
+
+<div class="camera-box">
+<h4>Live Camera</h4>
+<video id="video" autoplay muted playsinline></video>
+</div>
+
+<div class="camera-box">
+<h4>Captured Face</h4>
+<canvas id="snapshot" class="hidden"></canvas>
+</div>
+
+</div>
+
+<div class="scanning" id="scanAnim"></div>
+
+<div id="faceMessage">Waiting...</div>
+
+<div id="votingArea" class="hidden">
+
+<h3>Select Candidate</h3>
+
+<div id="candidateContainer"></div>
+
+<div id="voteMessage"></div>
+
+</div>
+
+</div>
+
+<script src="face-api.min.js"></script>
+
+<script>
+
+const BASE="http://localhost:3000";
+
+let storedDescriptor=null;
+let currentVoterId=null;
+let videoStream=null;
+let faceMatched=false;
+
+/* LOAD MODELS */
+
+async function loadModels(){
+
+await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
+await faceapi.nets.faceLandmark68Net.loadFromUri("./models");
+await faceapi.nets.faceRecognitionNet.loadFromUri("./models");
+
+}
+
+loadModels();
+
+/* VERIFY VOTER */
+
+async function verifyVoter(){
+
+const voterId=document.getElementById("voterId").value.trim();
+if(!voterId) return;
+
+document.getElementById("officerMessage").innerHTML="Verifying voter ⏳";
+
+const res=await fetch(`${BASE}/voter-face/${voterId}`);
+const data=await res.json();
+
+if(data.error){
+document.getElementById("officerMessage").innerText=data.error;
+return;
+}
+
+if(data.hasVoted){
+document.getElementById("officerMessage").innerText="Already voted ❌";
+return;
+}
+
+const img = await faceapi.fetchImage(data.imagePath);
+
+const detection = await faceapi
+.detectSingleFace(img,new faceapi.TinyFaceDetectorOptions())
+.withFaceLandmarks()
+.withFaceDescriptor();
+
+storedDescriptor = detection.descriptor;
+
+currentVoterId=voterId;
+
+document.getElementById("officerMessage").innerText="Eligible to Vote ✅";
+
+setTimeout(()=>{
+document.getElementById("officerSection").classList.add("hidden");
+document.getElementById("boothSection").classList.remove("hidden");
+startCamera();
+},1200);
+
+}
+
+/* CAMERA */
+
+async function startCamera(){
+
+faceMatched=false;
+
+const video=document.getElementById("video");
+
+videoStream=await navigator.mediaDevices.getUserMedia({video:true});
+video.srcObject=videoStream;
+await video.play();
+
+scanFace();
+
+}
+
+/* FACE SCAN */
+
+async function scanFace(){
+
+if(faceMatched) return;
+
+const video=document.getElementById("video");
+
+const detection=await faceapi
+.detectSingleFace(video,new faceapi.TinyFaceDetectorOptions())
+.withFaceLandmarks()
+.withFaceDescriptor();
+
+if(!detection){
+
+document.getElementById("faceMessage").innerText="No face detected. Adjust position...";
+setTimeout(scanFace,700);
+return;
+
+}
+
+const distance=faceapi.euclideanDistance(
+detection.descriptor,
+storedDescriptor
+);
+
+/* MATCH */
+
+if(distance < 0.50){
+
+faceMatched=true;
+
+document.getElementById("faceMessage").innerText="Face Matched ✅";
+
+document.getElementById("scanAnim").style.display="none";
+
+captureSnapshot(video);
+stopCamera();
+
+setTimeout(()=>{
+
+document.getElementById("votingArea").classList.remove("hidden");
+loadCandidates();
+
+},1000);
+
+}
+
+/* MISMATCH */
+
+else{
+
+faceMatched=true;
+
+document.getElementById("scanAnim").style.display="none";
+
+document.getElementById("faceMessage").innerText="Face Mismatch ❌";
+
+stopCamera();
+
+setTimeout(()=>{
+
+document.getElementById("faceMessage").innerText="Verification Failed ❌";
+
+},1500);
+
+setTimeout(()=>{
+
+document.getElementById("boothSection").classList.add("hidden");
+document.getElementById("officerSection").classList.remove("hidden");
+
+document.getElementById("faceMessage").innerText="Waiting...";
+document.getElementById("scanAnim").style.display="block";
+
+document.getElementById("voterId").value="";
+
+},3000);
+
+}
+
+}
+
+/* SNAPSHOT */
+
+function captureSnapshot(video){
+
+const canvas=document.getElementById("snapshot");
+const ctx=canvas.getContext("2d");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+canvas.classList.remove("hidden");
+
+}
+
+/* STOP CAMERA */
+
+function stopCamera(){
+
+if(videoStream){
+videoStream.getTracks().forEach(track=>track.stop());
+}
+
+}
+
+/* LOAD CANDIDATES */
+
+async function loadCandidates(){
+
+const res=await fetch(`${BASE}/candidates`);
+const candidates=await res.json();
+
+const container=document.getElementById("candidateContainer");
+
+container.innerHTML="";
+
+candidates.forEach(c=>{
+
+const row=document.createElement("div");
+row.className="evm-row";
+
+row.innerHTML=`
+
+<div class="candidate-left">
+<img src="${c.partySymbol}">
+<span>${c.name}</span>
+</div>
+
+<button class="vote-btn" onclick="castVote(${c.id})">Vote</button>
+
+`;
+
+container.appendChild(row);
+
+});
+
+}
+
+/* CAST VOTE */
+
+async function castVote(candidateId){
+
+const res=await fetch(`${BASE}/vote`,{
+
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+voterId:currentVoterId,
+candidateId:candidateId
+})
+
+});
+
+const data=await res.json();
+
+if(data.error){
+
+document.getElementById("voteMessage").innerText=data.error;
+
+}else{
+
+document.getElementById("successScreen").style.display="flex";
+
+document.getElementById("txId").innerText = data.txId || "Blockchain transaction recorded";
+
+setTimeout(()=>location.reload(),5000);
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
