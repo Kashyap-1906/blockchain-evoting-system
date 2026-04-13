@@ -10,6 +10,17 @@ This project presents a secure electronic voting system using blockchain technol
 - Candidate selection interface
 - Transaction ID for vote verification
 
+## Smart Contract
+
+The voting logic is implemented using a Solidity smart contract.
+
+File: Voting.sol
+
+Functions:
+- castVote()
+- getVotesCount()
+- getVote()
+
 ## Technologies Used
 
 - Node.js
