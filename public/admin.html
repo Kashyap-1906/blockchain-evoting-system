@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<style>
+
+body{
+font-family:"Segoe UI",Arial,sans-serif;
+background:linear-gradient(135deg,#eef2f3,#dfe9f3);
+margin:0;
+padding:0;
+text-align:center;
+}
+
+header{
+background:#1f3c88;
+color:white;
+padding:15px;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:15px;
+box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
+
+header img{
+height:45px;
+}
+
+header h1{
+margin:0;
+font-size:24px;
+}
+
+.dashboard{
+display:flex;
+justify-content:center;
+gap:25px;
+margin:25px;
+flex-wrap:wrap;
+}
+
+.card{
+background:white;
+padding:20px;
+width:180px;
+border-radius:12px;
+box-shadow:0 6px 15px rgba(0,0,0,0.1);
+}
+
+.card h2{
+color:#1f3c88;
+margin:0;
+}
+
+.card p{
+margin:5px 0 0;
+}
+
+.section{
+margin:30px auto;
+padding:25px;
+width:85%;
+background:white;
+border-radius:12px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+input{
+padding:10px;
+width:230px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+padding:9px 18px;
+margin:8px;
+border:none;
+border-radius:6px;
+background:#0056b3;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#004494;
+}
+
+.red{
+background:#dc3545;
+}
+
+.red:hover{
+background:#a71d2a;
+}
+
+table{
+width:100%;
+margin-top:15px;
+border-collapse:collapse;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #ddd;
+}
+
+th{
+background:#0056b3;
+color:white;
+}
+
+.searchBox{
+margin:20px;
+}
+
+.highlight{
+background:#fff3cd;
+font-weight:bold;
+}
+
+.symbol-img{
+width:35px;
+height:35px;
+}
+
+.success{color:#28a745;font-weight:600;}
+.error{color:#dc3545;font-weight:600;}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="eci-logo.png">
+<h1>Election Commission Admin Panel</h1>
+</header>
+
+<!-- DASHBOARD -->
+
+<div class="dashboard">
+
+<div class="card">
+<h2 id="totalVoters">0</h2>
+<p>Total Voters</p>
+</div>
+
+<div class="card">
+<h2 id="totalCandidates">0</h2>
+<p>Candidates</p>
+</div>
+
+<div class="card">
+<h2 id="votesCast">0</h2>
+<p>Votes Cast</p>
+</div>
+
+</div>
+
+<!-- REGISTER VOTER HIDDEN -->
+
+<div class="section" style="display:none;">
+<h3>Register Voter</h3>
+</div>
+
+<!-- ADD CANDIDATE HIDDEN -->
+
+<div class="section" style="display:none;">
+<h3>Add Candidate</h3>
+</div>
+
+<!-- SEARCH -->
+
+<div class="searchBox">
+
+<input id="searchInput" placeholder="Search Voter ID">
+
+<button onclick="searchVoter()">Search</button>
+
+</div>
+
+<!-- VOTERS LIST -->
+
+<div class="section">
+
+<h3>Voters List <button onclick="loadVoters()">Refresh 🔄</button></h3>
+
+<table>
+
+<thead>
+<tr>
+<th>Voter ID</th>
+<th>Has Voted</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="votersTable"></tbody>
+
+</table>
+
+</div>
+
+<!-- CANDIDATES LIST -->
+
+<div class="section">
+
+<h3>Candidates List <button onclick="loadCandidates()">Refresh 🔄</button></h3>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Symbol</th>
+<th>Name</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="candidatesTable"></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+const BASE="http://localhost:3000";
+
+/* LOAD VOTERS */
+
+async function loadVoters(){
+
+const res=await fetch(`${BASE}/voters`);
+const voters=await res.json();
+
+const table=document.getElementById("votersTable");
+
+table.innerHTML="";
+
+voters.forEach(v=>{
+
+table.innerHTML+=`
+
+<tr>
+<td>${v.voterId}</td>
+<td>${v.hasVoted?"Yes":"No"}</td>
+<td>
+<button class="red" onclick="deleteVoter('${v.voterId}')">Delete</button>
+</td>
+</tr>
+
+`;
+
+});
+
+}
+
+/* DELETE VOTER */
+
+async function deleteVoter(id){
+
+await fetch(`${BASE}/delete-voter/${id}`,{method:"DELETE"});
+
+loadVoters();
+loadStats();
+
+}
+
+/* LOAD CANDIDATES */
+
+async function loadCandidates(){
+
+const res=await fetch(`${BASE}/candidates`);
+const candidates=await res.json();
+
+const table=document.getElementById("candidatesTable");
+
+table.innerHTML="";
+
+candidates.forEach(c=>{
+
+table.innerHTML+=`
+
+<tr>
+<td>${c.id}</td>
+<td><img src="${c.partySymbol}" class="symbol-img"></td>
+<td>${c.name}</td>
+<td>
+<button class="red" onclick="deleteCandidate(${c.id})">Delete</button>
+</td>
+</tr>
+
+`;
+
+});
+
+}
+
+/* DELETE CANDIDATE */
+
+async function deleteCandidate(id){
+
+await fetch(`${BASE}/delete-candidate/${id}`,{method:"DELETE"});
+
+loadCandidates();
+loadStats();
+
+}
+
+/* SEARCH */
+
+function searchVoter(){
+
+const value=document.getElementById("searchInput").value.toLowerCase();
+
+const rows=document.querySelectorAll("#votersTable tr");
+
+rows.forEach(row=>{
+
+row.classList.remove("highlight");
+
+const id=row.children[0].innerText.toLowerCase();
+
+if(id.includes(value)){
+
+row.classList.add("highlight");
+
+row.scrollIntoView({behavior:"smooth",block:"center"});
+
+}
+
+});
+
+}
+
+/* STATS */
+
+async function loadStats(){
+
+const voters=await fetch(`${BASE}/voters`).then(r=>r.json());
+const candidates=await fetch(`${BASE}/candidates`).then(r=>r.json());
+
+document.getElementById("totalVoters").innerText=voters.length;
+document.getElementById("totalCandidates").innerText=candidates.length;
+
+let voted=voters.filter(v=>v.hasVoted).length;
+
+document.getElementById("votesCast").innerText=voted;
+
+}
+
+/* AUTO REFRESH */
+
+setInterval(()=>{
+
+loadVoters();
+loadStats();
+
+},5000);
+
+loadVoters();
+loadCandidates();
+loadStats();
+
+</script>
+
+</body>
+</html>
