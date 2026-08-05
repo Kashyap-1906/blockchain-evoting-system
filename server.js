@@ -14,10 +14,11 @@ app.use(express.static("public"));
 // ================= DATABASE CONNECTION =================
 
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: process.env.DB_PASSWORD,
-    database: "evoting"
+    host: process.env.RAILWAY_DB_HOST,
+    port: process.env.RAILWAY_DB_PORT,
+    user: process.env.RAILWAY_DB_USER,
+    password: process.env.RAILWAY_DB_PASSWORD,
+    database: process.env.RAILWAY_DB_NAME
 });
 
 db.connect((err) => {
