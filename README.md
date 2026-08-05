@@ -1,3 +1,6 @@
+Yes 👍 paatha README motham replace chesi idi pettu. Ippudu **actual current project — Ethereum Sepolia + Alchemy + Face Recognition + MySQL** ki match ayyela professional ga untundi.
+
+````markdown
 # 🗳️ Blockchain-Based Secure E-Voting System
 
 A secure and transparent electronic voting system that combines **Blockchain Technology** with **Face Recognition Authentication** to provide tamper-resistant vote recording, voter verification, and duplicate-voting prevention.
@@ -77,3 +80,139 @@ Voting Smart Contract
 Ethereum Sepolia Testnet
       ↓
 Transaction Hash
+````
+
+---
+
+## 📜 Smart Contract
+
+The `Voting.sol` smart contract handles blockchain-based vote recording.
+
+### Main Functions
+
+* `castVote()` – Records a valid vote on the blockchain.
+* `getVotesCount()` – Returns the total number of successfully recorded votes.
+* `getVote()` – Retrieves stored vote information.
+* `hasVoted` – Tracks voter IDs and prevents duplicate voting.
+
+The smart contract uses Solidity's `require()` validation to reject repeated voting attempts.
+
+---
+
+## 🗄️ Database
+
+MySQL is used to manage application-level information such as:
+
+* Voter IDs
+* Face data
+* Voting status
+* Candidate information
+
+The actual blockchain vote record is handled by the Ethereum smart contract.
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+DB_PASSWORD=your_mysql_password
+
+BLOCKCHAIN_RPC_URL=your_sepolia_rpc_url
+
+BLOCKCHAIN_PRIVATE_KEY=your_wallet_private_key
+
+CONTRACT_ADDRESS=your_deployed_contract_address
+```
+
+> ⚠️ Never commit the `.env` file or expose wallet private keys publicly.
+
+---
+
+## 🚀 Running the Project Locally
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Kashyap-1906/blockchain-evoting-system.git
+```
+
+### 2. Navigate to the project
+
+```bash
+cd blockchain-evoting-system
+```
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. Configure MySQL
+
+Create/import the database using:
+
+```text
+database.sql
+```
+
+### 5. Configure environment variables
+
+Create the `.env` file and add the required database and blockchain credentials.
+
+### 6. Start the server
+
+```bash
+node server.js
+```
+
+### 7. Open the application
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 🔒 Security
+
+The system provides multiple layers of protection:
+
+* Face-based voter authentication
+* Duplicate face registration detection
+* Smart contract based duplicate voting prevention
+* Blockchain immutability
+* Environment-variable based secret management
+* Transaction-level vote verification
+
+Even if a duplicate voting request reaches the blockchain, the smart contract rejects it if the voter has already voted.
+
+---
+
+## 🌐 Blockchain Network
+
+**Network:** Ethereum Sepolia Testnet
+
+The voting smart contract is deployed on the Ethereum Sepolia Testnet, allowing transactions to be publicly verified through a blockchain explorer.
+
+---
+
+## 🎯 Project Objective
+
+The objective of this project is to demonstrate how blockchain technology and biometric authentication can be combined to improve the **security, transparency, integrity, and verifiability of electronic voting systems**.
+
+---
+
+
+## 📌 Project Status
+
+✅ Face Recognition Integration
+✅ Voter & Candidate Management
+✅ Smart Contract Integration
+✅ Duplicate Vote Prevention
+✅ Ethereum Sepolia Deployment
+✅ Blockchain Transaction Verification
+
+
