@@ -1,6 +1,4 @@
-Yes 👍 paatha README motham replace chesi idi pettu. Ippudu **actual current project — Ethereum Sepolia + Alchemy + Face Recognition + MySQL** ki match ayyela professional ga untundi.
 
-````markdown
 # 🗳️ Blockchain-Based Secure E-Voting System
 
 A secure and transparent electronic voting system that combines **Blockchain Technology** with **Face Recognition Authentication** to provide tamper-resistant vote recording, voter verification, and duplicate-voting prevention.
