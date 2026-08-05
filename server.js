@@ -4,6 +4,7 @@ const cors = require("cors");
 const mysql = require("mysql2");
 const { ethers } = require("ethers");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
 
@@ -39,7 +40,9 @@ const wallet = new ethers.Wallet(privateKey, provider);
 
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
-const contractABI = JSON.parse(fs.readFileSync("voting_abi.json"));
+const contractABI = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "voting_abi.json"), "utf8")
+);
 
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
