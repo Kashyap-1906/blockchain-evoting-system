@@ -17,22 +17,19 @@ app.get("/", (req, res) => {
 
 // ================= DATABASE CONNECTION =================
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.RAILWAY_DB_HOST,
-    port: process.env.RAILWAY_DB_PORT,
+    port: Number(process.env.RAILWAY_DB_PORT),
     user: process.env.RAILWAY_DB_USER,
     password: process.env.RAILWAY_DB_PASSWORD,
-    database: process.env.RAILWAY_DB_NAME
+    database: process.env.RAILWAY_DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 5,
+    queueLimit: 0,
+    connectTimeout: 10000
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error("Database connection failed:", err);
-    } else {
-        console.log("Connected to MySQL Database ✅");
-    }
-});
-
+console.log("MySQL connection pool initialized ✅");
 // ================= BLOCKCHAIN SETUP =================
 
 const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
