@@ -30,9 +30,9 @@ db.connect((err) => {
 
 // ================= BLOCKCHAIN SETUP =================
 
-const provider = new ethers.JsonRpcProvider(process.env.GANACHE_URL);
+const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
 
-const privateKey = process.env.GANACHE_PRIVATE_KEY;
+const privateKey = process.env.BLOCKCHAIN_PRIVATE_KEY;
 
 const wallet = new ethers.Wallet(privateKey, provider);
 
